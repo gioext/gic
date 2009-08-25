@@ -31,6 +31,9 @@ int
 gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale);
 
 int
+gic_resize_area_average(GIC_IMAGE *img, double scale);
+
+int
 gic_write_image(GIC_IMAGE *img, char *filename);
 
 #endif
