@@ -1,15 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <ruby.h>
 #include <jpeglib.h>
+#include "gic.h"
 
-typedef struct gic_image {
-    JSAMPARRAY data;
-    int width;
-    int height;
-} GIC_IMAGE;
-
-int gic_jpeg_open(char *filename, GIC_IMAGE *img)
+int
+gic_jpeg_open(char *filename, GIC_IMAGE *img)
 {
     int i;
     FILE *fin = fopen(filename, "rb");
@@ -45,7 +40,8 @@ int gic_jpeg_open(char *filename, GIC_IMAGE *img)
     return 0;
 }
 
-int gic_jpeg_free(GIC_IMAGE *img)
+int
+gic_jpeg_free(GIC_IMAGE *img)
 {
     int i;
     for (i = 0; i < img->height; i++) {
@@ -55,18 +51,18 @@ int gic_jpeg_free(GIC_IMAGE *img)
     return 0;
 }
 
-VALUE
-gic_write_ppm(VALUE self, VALUE infile, VALUE outfile)
+int
+gic_write_ppm(char *infile, char *outfile)
 {
     GIC_IMAGE img;
     int i, j;
 
-    if(gic_jpeg_open(STR2CSTR(infile), &img) != 0) {
-        return Qfalse;
+    if(gic_jpeg_open(infile, &img) != 0) {
+        return 1;
     }
 
     // write ppm
-    FILE *fout = fopen(STR2CSTR(outfile), "wb");
+    FILE *fout = fopen(outfile, "wb");
     fprintf(fout, "P6\n");
     fprintf(fout, "%d %d\n", img.width, img.height);
     fprintf(fout, "255\n");
@@ -81,24 +77,7 @@ gic_write_ppm(VALUE self, VALUE infile, VALUE outfile)
 
     // free img
     if (gic_jpeg_free(&img) != 0) {
-        return Qfalse;
+        return 1;
     }
-    return Qtrue;
-}
-
-VALUE
-gic_hello(VALUE self)
-{
-    printf("hello\n");
-    return self;
-}
-
-void
-Init_gic(void)
-{
-    VALUE Gic;
-
-    Gic = rb_define_class("Gic", rb_cObject);
-    rb_define_method(Gic, "hello", gic_hello, 0);
-    rb_define_method(Gic, "write_ppm", gic_write_ppm, 2);
+    return 0;
 }
