@@ -5,6 +5,9 @@
 int
 main(int argc, char *argv[])
 {
-    gic_write_ppm(argv[1], argv[2]);
+    GIC_IMAGE img;
+    gic_jpeg_open(argv[1], &img);
+    gic_resize_nearest_neighbour(&img, 0.5);
+
     return 0;
 }
