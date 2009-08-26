@@ -14,8 +14,8 @@ typedef struct gic_image {
 } GIC_IMAGE;
 
 
-int
-gic_jpeg_open(char *filename, GIC_IMAGE *img);
+GIC_IMAGE *
+gic_jpeg_open(char *filename);
 
 
 int
