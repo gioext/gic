@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "gic.h"
+#include "gic_resize.h"
 
 int
 main(int argc, char *argv[])
