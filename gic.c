@@ -68,7 +68,7 @@ gic_write_image(GIC_IMAGE *img, char *filename)
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
 
-    jpeg_set_quality(&cinfo, 95, TRUE);
+    jpeg_set_quality(&cinfo, 90, TRUE);
 
     jpeg_start_compress(&cinfo, TRUE);
 
