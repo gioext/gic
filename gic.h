@@ -15,11 +15,11 @@ typedef struct gic_image {
 
 
 GIC_IMAGE *
+gic_create_image(int width, int height);
+
+
+GIC_IMAGE *
 gic_jpeg_open(char *filename);
-
-
-int
-gic_jpeg_free(GIC_IMAGE *img);
 
 
 int

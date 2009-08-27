@@ -1,19 +1,5 @@
 #include "resize.h"
 
-static GIC_IMAGE *
-gic_create_image(int width, int height)
-{
-    int i;
-    GIC_IMAGE *img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));
-    img->width = width;
-    img->height = height;
-    img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * height);
-    for (i = 0; i < width; i++) {
-        img->data[i] = (JSAMPROW)malloc(sizeof(JSAMPLE) * 3 * width);
-    }
-
-    return img;
-}
 
 GIC_IMAGE *
 gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale)
