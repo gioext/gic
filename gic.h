@@ -31,6 +31,6 @@ gic_write_ppm(char *infile, char *outfile);
 
 
 int
-gic_write_image(GIC_IMAGE *img, char *filename);
+gic_write_image(GIC_IMAGE *img, char *filename, int quality);
 
 #endif

@@ -1,2 +1,2 @@
 gic: gic.c main.c resize.c
-	gcc -Wall -O2 -fopenmp -ljpeg -o gic gic.c resize.c main.c
+	gcc -O2 -fopenmp -mmmx -msse -msse2 -msse3 -Wall -I/opt/local/include -L/opt/local/lib -ljpeg -o gic gic.c resize.c main.c

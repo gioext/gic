@@ -42,23 +42,46 @@ gic_resize_bilinear(GIC_IMAGE *img, int to_width, int to_height)
     return 0;
 }
 
+
+
+/*
+ * lanczos func
+ * sinc(x) * sinc(x / n)
+ *
+ * sinc func
+ * sin(PI * x) / (PI * x)
+ *
+ */
 static double
 sinc(double x)
 {
     return sin(PI * x) / (PI * x);
 }
 
+#define DISCRETE_SIZE 3000
 static double
-lanczos(double d, double n)
+lanczos(double x, int n)
 {
-    double x = fabs(d);
-    if (x < 0.00000001) {
-        return 1.0;
-    } else if (x >= n) {
-        return 0.0;
-    } else {
-        return sinc(d) * sinc(d / n);
+    if (n < 2 || n > 3) {
+        fprintf(stderr, "Only suport lanczos-2 or lanczos-3\n");
+        exit(1);
     }
+    static double lookup[DISCRETE_SIZE];
+    int i = (int)(x * 1000);
+
+    if (i <= 0) {
+        return 1.0;
+    } else if (i >= DISCRETE_SIZE) {
+        return 0.0;
+    }
+
+
+    double r = lookup[i];
+    if (r == 0.0) {
+        r = sinc(x) * sinc(x / n);
+        lookup[i] = r;
+    }
+    return r;
 }
 
 static int

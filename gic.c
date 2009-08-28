@@ -66,7 +66,7 @@ gic_jpeg_free(GIC_IMAGE *img)
 }
 
 int
-gic_write_image(GIC_IMAGE *img, char *filename)
+gic_write_image(GIC_IMAGE *img, char *filename, int quality)
 {
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -83,7 +83,7 @@ gic_write_image(GIC_IMAGE *img, char *filename)
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
 
-    jpeg_set_quality(&cinfo, 90, TRUE);
+    jpeg_set_quality(&cinfo, quality, TRUE);
 
     jpeg_start_compress(&cinfo, TRUE);
 
