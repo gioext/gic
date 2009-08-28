@@ -109,7 +109,7 @@ gic_resize_lanczos(GIC_IMAGE *img, double scale, int n)
     to_height = from_height * scale;
     to_img = gic_create_image(to_width, to_height);
 
-    #pragma omp parallel num_threads(4)
+    #pragma omp parallel num_threads(2)
     {
         double r, g, b;
         int w, h, x, y;
@@ -123,19 +123,18 @@ gic_resize_lanczos(GIC_IMAGE *img, double scale, int n)
 
         #pragma omp for
         for (h = 0; h < to_height; h++) {
+            y0 = h + 0.5;
+            y_bottom = (y0 - n) / scale;
+            y_top = (y0 + n) / scale;
             for (w = 0; w < to_width; w++) {
                 r = 0;
                 g = 0;
                 b = 0;
+                weight_total = 0.0;
 
                 x0 = w + 0.5;
-                y0 = h + 0.5;
-
                 x_bottom = (x0 - n) / scale;
                 x_top = (x0 + n) / scale;
-                y_bottom = (y0 - n) / scale;
-                y_top = (y0 + n) / scale;
-                weight_total = 0.0;
                 
                 for (y = y_bottom; y <= y_top; y++) {
                     if (y < 0 || y >= from_height) {
