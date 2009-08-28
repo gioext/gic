@@ -30,9 +30,21 @@ gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale)
     return to_img;
 }
 
-int
-gic_resize_area_average(GIC_IMAGE *img, int to_width, int to_height)
+GIC_IMAGE *
+gic_resize_area_average(GIC_IMAGE *img, double scale)
 {
+    int w, h;
+    int to_width, to_height;
+    GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
+
+    int dct = img->width * to_width;
+
+
+    // for x
+    for (h = 0; h < to_height; h++) {
+        for (w = 0; w < to_width; w++) {
+        }
+    }
     return 0;
 }
 
