@@ -85,17 +85,15 @@ lanczos(double x, int n)
 }
 
 static int
-filter(int x, int total)
+filter(double x, double total)
 {
-    if (total != 0) {
-        x /= total;
-    }
-    if (x < 0) {
+    int c = x / total;
+    if (c < 0) {
         return 0;
-    } else if (x > 255) {
+    } else if (c > 255) {
         return 255;
     } else {
-        return x;
+        return c;
     }
 }
 
@@ -113,12 +111,15 @@ gic_resize_lanczos(GIC_IMAGE *img, double scale, int n)
 
     #pragma omp parallel num_threads(4)
     {
-        int r, g, b;
+        double r, g, b;
         int w, h, x, y;
 
         double x0, y0;
         int x_bottom, x_top, y_bottom, y_top;
         double weight_total;
+        double xl, yl;
+        double lanczos_y, lanczos_x;
+        double weight;
 
         #pragma omp for
         for (h = 0; h < to_height; h++) {
@@ -140,15 +141,15 @@ gic_resize_lanczos(GIC_IMAGE *img, double scale, int n)
                     if (y < 0 || y >= from_height) {
                         continue;
                     }
-                    double yl = fabs(((y + 0.5) * scale) - y0);
-                    double lanczos_y = lanczos(yl, n);
+                    yl = fabs(((y + 0.5) * scale) - y0);
+                    lanczos_y = lanczos(yl, n);
                     for (x = x_bottom; x <= x_top; x++) {
                         if (x < 0 || x >= from_width) {
                             continue;
                         }
-                        double xl = fabs(((x + 0.5) * scale) - x0);
-                        double lanczos_x = lanczos(xl, n);
-                        double weight = lanczos_x * lanczos_y;
+                        xl = fabs(((x + 0.5) * scale) - x0);
+                        lanczos_x = lanczos(xl, n);
+                        weight = lanczos_x * lanczos_y;
                         r += img->data[y][x * 3 + 0] * weight;
                         g += img->data[y][x * 3 + 1] * weight;
                         b += img->data[y][x * 3 + 2] * weight;
@@ -156,13 +157,9 @@ gic_resize_lanczos(GIC_IMAGE *img, double scale, int n)
                     }
                 }
 
-                r = filter(r, weight_total);
-                g = filter(g, weight_total);
-                b = filter(b, weight_total);
-
-                to_img->data[h][w * 3 + 0] = r;
-                to_img->data[h][w * 3 + 1] = g;
-                to_img->data[h][w * 3 + 2] = b;
+                to_img->data[h][w * 3 + 0] = filter(r, weight_total);
+                to_img->data[h][w * 3 + 1] = filter(g, weight_total);
+                to_img->data[h][w * 3 + 2] = filter(b, weight_total);
             }
         }
     }
