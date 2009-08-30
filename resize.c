@@ -30,22 +30,93 @@ gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale)
     return to_img;
 }
 
+static int
+gcd(int x, int y)
+{
+    int max = x > y ? x : y;
+    int min = x < y ? x : y;
+
+    if (min == 0) {
+        return max;
+    }
+
+    while(1) {
+        int n = max % min;
+        if (n == 0) {
+            return min;
+        }
+        max = min;
+        min = n;
+    }
+}
+
+static int
+lcm(int x, int y)
+{
+    return (x * y) / gcd(x, y);
+}
+
+#define MAX_SPLIT_SIZE 5
+
 GIC_IMAGE *
 gic_resize_area_average(GIC_IMAGE *img, double scale)
 {
     int w, h;
-    int to_width, to_height;
+    int to_width, to_height, from_width, from_height;
+    from_width = img->width;
+    from_height = img->height;
+    to_width = img->width * scale;
+    to_height = img->height * scale;
     GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
 
-    int dct = img->width * to_width;
+    int lcmx = lcm(to_width, from_width);
+    int lcmy = lcm(to_height, from_height);
+    if (lcmx > MAX_SPLIT_SIZE * to_width) {
+        lcmx = MAX_SPLIT_SIZE * to_width;
+    }
+    if (lcmy > MAX_SPLIT_SIZE * to_height) {
+        lcmy = MAX_SPLIT_SIZE * to_height;
+    }
+    double sx = (double)from_width / lcmx;
+    double sy = (double)from_height / lcmy;
+    double dx = (double)to_width / lcmx;
+    double dy = (double)to_height / lcmy;
+    double dxy = dx * dy;
+
+    double *R = (double *)calloc(sizeof(double), to_width * to_height);
+    double *G = (double *)calloc(sizeof(double), to_width * to_height);
+    double *B = (double *)calloc(sizeof(double), to_width * to_height);
 
 
-    // for x
-    for (h = 0; h < to_height; h++) {
-        for (w = 0; w < to_width; w++) {
+    for (h = 0; h < lcmy; h++) {
+        int fy = (int)(h * sy);
+        int ty = (int)(h * dy);
+        int tyw = ty * to_width;
+        for (w = 0; w < lcmx; w++) {
+            int fx = (int)(w * sx);
+            int tx = (int)(w * dx);
+
+            double r = img->data[fy][fx * 3 + 0] * dxy;
+            double g = img->data[fy][fx * 3 + 1] * dxy;
+            double b = img->data[fy][fx * 3 + 2] * dxy;
+
+            R[tyw + tx] += r;
+            G[tyw + tx] += g;
+            B[tyw + tx] += b;
         }
     }
-    return 0;
+
+    for (h = 0; h < to_height; h++) {
+        for (w = 0; w < to_width; w++) {
+            to_img->data[h][w * 3 + 0] = R[h * to_width + w];
+            to_img->data[h][w * 3 + 1] = G[h * to_width + w];
+            to_img->data[h][w * 3 + 2] = B[h * to_width + w];
+        }
+    }
+    free(R);
+    free(G);
+    free(B);
+    return to_img;
 }
 
 int
