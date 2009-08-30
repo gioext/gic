@@ -1,52 +1,23 @@
 #include "resize.h"
 
-
-GIC_IMAGE *
-gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale)
-{
-    int x, y;
-    int xp, yp;
-    int r, g, b;
-    int to_width, to_height;
-    to_width = img->width * scale;
-    to_height = img->height * scale;
-
-    GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
-
-    for (y = 0; y < to_height; y++) {
-        for (x = 0; x < to_width; x++) {
-            xp = (int)(x / scale);
-            yp = (int)(y / scale);
-
-            r = img->data[yp][xp * 3 + 0];
-            g = img->data[yp][xp * 3 + 1];
-            b = img->data[yp][xp * 3 + 2];
-
-            to_img->data[y][x * 3 + 0] = r;
-            to_img->data[y][x * 3 + 1] = g;
-            to_img->data[y][x * 3 + 2] = b;
-        }
-    }
-    return to_img;
-}
-
 static int
 gcd(int x, int y)
 {
-    int max = x > y ? x : y;
-    int min = x < y ? x : y;
+    int m, n, r;
+    m = x > y ? x : y;
+    n = x < y ? x : y;
 
-    if (min == 0) {
-        return max;
+    if (n == 0) {
+        return m;
     }
 
     while(1) {
-        int n = max % min;
-        if (n == 0) {
-            return min;
+        r = m % n;
+        if (r == 0) {
+            return n;
         }
-        max = min;
-        min = n;
+        m = n;
+        n = r;
     }
 }
 
@@ -55,77 +26,6 @@ lcm(int x, int y)
 {
     return (x * y) / gcd(x, y);
 }
-
-#define MAX_SPLIT_SIZE 5
-
-GIC_IMAGE *
-gic_resize_area_average(GIC_IMAGE *img, double scale)
-{
-    int w, h;
-    int to_width, to_height, from_width, from_height;
-    from_width = img->width;
-    from_height = img->height;
-    to_width = img->width * scale;
-    to_height = img->height * scale;
-    GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
-
-    int lcmx = lcm(to_width, from_width);
-    int lcmy = lcm(to_height, from_height);
-    if (lcmx > MAX_SPLIT_SIZE * to_width) {
-        lcmx = MAX_SPLIT_SIZE * to_width;
-    }
-    if (lcmy > MAX_SPLIT_SIZE * to_height) {
-        lcmy = MAX_SPLIT_SIZE * to_height;
-    }
-    double sx = (double)from_width / lcmx;
-    double sy = (double)from_height / lcmy;
-    double dx = (double)to_width / lcmx;
-    double dy = (double)to_height / lcmy;
-    double dxy = dx * dy;
-
-    double *R = (double *)calloc(sizeof(double), to_width * to_height);
-    double *G = (double *)calloc(sizeof(double), to_width * to_height);
-    double *B = (double *)calloc(sizeof(double), to_width * to_height);
-
-
-    for (h = 0; h < lcmy; h++) {
-        int fy = (int)(h * sy);
-        int ty = (int)(h * dy);
-        int tyw = ty * to_width;
-        for (w = 0; w < lcmx; w++) {
-            int fx = (int)(w * sx);
-            int tx = (int)(w * dx);
-
-            double r = img->data[fy][fx * 3 + 0] * dxy;
-            double g = img->data[fy][fx * 3 + 1] * dxy;
-            double b = img->data[fy][fx * 3 + 2] * dxy;
-
-            R[tyw + tx] += r;
-            G[tyw + tx] += g;
-            B[tyw + tx] += b;
-        }
-    }
-
-    for (h = 0; h < to_height; h++) {
-        for (w = 0; w < to_width; w++) {
-            to_img->data[h][w * 3 + 0] = R[h * to_width + w];
-            to_img->data[h][w * 3 + 1] = G[h * to_width + w];
-            to_img->data[h][w * 3 + 2] = B[h * to_width + w];
-        }
-    }
-    free(R);
-    free(G);
-    free(B);
-    return to_img;
-}
-
-int
-gic_resize_bilinear(GIC_IMAGE *img, int to_width, int to_height)
-{
-    return 0;
-}
-
-
 
 /*
  * lanczos func
@@ -141,7 +41,6 @@ sinc(double x)
     return sin(PI * x) / (PI * x);
 }
 
-#define DISCRETE_SIZE 3000
 static double
 lanczos(double x, int n)
 {
@@ -178,6 +77,91 @@ filter(double x, double total)
     } else {
         return c;
     }
+}
+
+GIC_IMAGE *
+gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale)
+{
+    int x, y;
+    int xp, yp;
+    int r, g, b;
+    int to_width, to_height;
+    to_width = img->width * scale;
+    to_height = img->height * scale;
+
+    GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
+
+    for (y = 0; y < to_height; y++) {
+        for (x = 0; x < to_width; x++) {
+            xp = (int)(x / scale);
+            yp = (int)(y / scale);
+
+            r = img->data[yp][xp * 3 + 0];
+            g = img->data[yp][xp * 3 + 1];
+            b = img->data[yp][xp * 3 + 2];
+
+            to_img->data[y][x * 3 + 0] = r;
+            to_img->data[y][x * 3 + 1] = g;
+            to_img->data[y][x * 3 + 2] = b;
+        }
+    }
+    return to_img;
+}
+
+GIC_IMAGE *
+gic_resize_area_average(GIC_IMAGE *img, double scale)
+{
+    int to_width, to_height, from_width, from_height;
+    from_width = img->width;
+    from_height = img->height;
+    to_width = img->width * scale;
+    to_height = img->height * scale;
+    GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
+
+    int lcmx, lcmy;
+    lcmx = lcm(to_width, from_width);
+    lcmy = lcm(to_height, from_height);
+    if (lcmx > MAX_SPLIT_SIZE * to_width) {
+        lcmx = MAX_SPLIT_SIZE * to_width;
+    }
+    if (lcmy > MAX_SPLIT_SIZE * to_height) {
+        lcmy = MAX_SPLIT_SIZE * to_height;
+    }
+    double sx = (double)from_width / lcmx;
+    double sy = (double)from_height / lcmy;
+    double dx = (double)to_width / lcmx;
+    double dy = (double)to_height / lcmy;
+    double dxy = dx * dy;
+
+    double *R = (double *)calloc(sizeof(double), to_width * to_height);
+    double *G = (double *)calloc(sizeof(double), to_width * to_height);
+    double *B = (double *)calloc(sizeof(double), to_width * to_height);
+
+    int w, h;
+    for (h = 0; h < lcmy; h++) {
+        int fy = (int)(h * sy);
+        int ty = (int)(h * dy);
+        int tyw = ty * to_width;
+        for (w = 0; w < lcmx; w++) {
+            int fx = (int)(w * sx);
+            int tx = (int)(w * dx);
+
+            R[tyw + tx] += img->data[fy][fx * 3 + 0] * dxy;
+            G[tyw + tx] += img->data[fy][fx * 3 + 1] * dxy;
+            B[tyw + tx] += img->data[fy][fx * 3 + 2] * dxy;
+        }
+    }
+    for (h = 0; h < to_height; h++) {
+        for (w = 0; w < to_width; w++) {
+            to_img->data[h][w * 3 + 0] = R[h * to_width + w];
+            to_img->data[h][w * 3 + 1] = G[h * to_width + w];
+            to_img->data[h][w * 3 + 2] = B[h * to_width + w];
+        }
+    }
+    free(R);
+    free(G);
+    free(B);
+    return to_img;
 }
 
 GIC_IMAGE *

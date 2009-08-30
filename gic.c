@@ -7,7 +7,7 @@ gic_create_image(int width, int height)
     GIC_IMAGE *img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));
     img->width = width;
     img->height = height;
-    img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * height);
+    img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * height * 3 * width);
     for (i = 0; i < height; i++) {
         img->data[i] = (JSAMPROW)malloc(sizeof(JSAMPLE) * 3 * width);
     }
@@ -19,15 +19,17 @@ GIC_IMAGE *
 gic_jpeg_open(char *filename)
 {
     int i;
-    FILE *fin = fopen(filename, "rb");
     struct jpeg_decompress_struct cinfo;
     struct jpeg_error_mgr jerr;
-    GIC_IMAGE *img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));
+    FILE *fin;
+    GIC_IMAGE *img;
 
-    if (fin == NULL) {
+    if (!(fin = fopen(filename, "rb"))) {
         printf("file open error\n");
         exit(1);
     }
+
+    img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_decompress(&cinfo);
@@ -75,6 +77,9 @@ gic_write_image(GIC_IMAGE *img, char *filename, int quality)
     jpeg_create_compress(&cinfo);
 
     FILE *outfile = fopen(filename, "wb");
+    if (!outfile) {
+        exit(1);
+    }
     jpeg_stdio_dest(&cinfo, outfile);
 
     cinfo.image_width = img->width;
