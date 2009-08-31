@@ -25,8 +25,7 @@ gic_jpeg_open(char *filename)
     GIC_IMAGE *img;
 
     if (!(fin = fopen(filename, "rb"))) {
-        printf("file open error\n");
-        exit(1);
+        return NULL;
     }
 
     img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));

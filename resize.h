@@ -5,7 +5,7 @@
 #include "gic.h"
 
 #define PI             3.141592
-#define MAX_SPLIT_SIZE 3 
+#define MAX_SPLIT_SIZE 10
 #define DISCRETE_SIZE  3000
 
 GIC_IMAGE *
