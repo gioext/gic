@@ -42,10 +42,17 @@ main(int argc, char *argv[])
 
 
     before = clock();
-    thumb = gic_resize_area_average(img, scale1);
+    thumb = gic_resize_area_average1(img, scale1);
     gic_write_image(thumb, "test/img3.jpg", 90);
     after = clock();
-    printf("area average: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
+    printf("area average1: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
+
+
+    before = clock();
+    thumb = gic_resize_area_average2(img, scale1);
+    gic_write_image(thumb, "test/img4.jpg", 90);
+    after = clock();
+    printf("area average2: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
 
 
     gic_jpeg_free(thumb);

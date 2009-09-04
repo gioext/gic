@@ -12,7 +12,10 @@ GIC_IMAGE *
 gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale);
 
 GIC_IMAGE *
-gic_resize_area_average(GIC_IMAGE *img, double scale);
+gic_resize_area_average1(GIC_IMAGE *img, double scale);
+
+GIC_IMAGE *
+gic_resize_area_average2(GIC_IMAGE *img, double scale);
 
 GIC_IMAGE *
 gic_resize_lanczos(GIC_IMAGE *img, double scale, int n);

@@ -37,7 +37,7 @@ gic_resize_nearest_neighbour(GIC_IMAGE *img, double scale)
 }
 
 GIC_IMAGE *
-gic_resize_area_average(GIC_IMAGE *img, double scale)
+gic_resize_area_average1(GIC_IMAGE *img, double scale)
 {
     int to_width, to_height, from_width, from_height;
     int lcmx, lcmy;
@@ -69,8 +69,7 @@ gic_resize_area_average(GIC_IMAGE *img, double scale)
     G = (double *)calloc(sizeof(double), to_width * to_height);
     B = (double *)calloc(sizeof(double), to_width * to_height);
 
-
-    int w, h, fy, ty, tyw, fx, tx;
+    int w, h, fy, ty, tyw, fx, tx, fx3, tywtx;
     for (h = 0; h < lcmy; h++) {
         fy = (int)(h * sy);
         ty = (int)(h * dy);
@@ -79,7 +78,6 @@ gic_resize_area_average(GIC_IMAGE *img, double scale)
             fx = (int)(w * sx);
             tx = (int)(w * dx);
 
-            int fx3, tywtx;
             fx3 = fx * 3;
             tywtx = tyw + tx;
 
@@ -99,6 +97,48 @@ gic_resize_area_average(GIC_IMAGE *img, double scale)
     free(R);
     free(G);
     free(B);
+    return to_img;
+}
+
+GIC_IMAGE *
+gic_resize_area_average2(GIC_IMAGE *img, double scale)
+{
+    int to_width, to_height, from_width, from_height;
+
+    from_width = img->width;
+    from_height = img->height;
+    to_width = img->width * scale;
+    to_height = img->height * scale;
+    GIC_IMAGE *to_img = gic_create_image(to_width, to_height);
+
+    int x, y, w, h;
+    int hw_t, hw_b, hh_t, hh_b;
+    int count;
+    int r, g, b;
+    for (h = 0; h < to_height; h++) {
+        hh_t = (h + 0) * from_height / to_height;
+        hh_b = (h + 1) * from_height / to_height;
+
+        for (w = 0; w < to_width; w++) {
+            hw_t = (w + 0) * from_width / to_width;
+            hw_b = (w + 1) * from_width / to_width;
+
+            count = 0, r = 0, g = 0, b = 0;
+            for (y = hh_t; y < hh_b; y++) {
+                for (x = hw_t; x < hw_b; x++) {
+                    r += img->data[y][x * 3 + 0];
+                    g += img->data[y][x * 3 + 1];
+                    b += img->data[y][x * 3 + 2];
+                    count++;
+                }
+            }
+
+            to_img->data[h][w * 3 + 0] = r / count;
+            to_img->data[h][w * 3 + 1] = g / count;
+            to_img->data[h][w * 3 + 2] = b / count;
+        }
+    }
+
     return to_img;
 }
 
