@@ -1,4 +1,4 @@
-#include "resize.h"
+#include "gic.h"
 
 static int gcd(int x, int y);
 static int lcm(int x, int y);

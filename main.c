@@ -1,5 +1,4 @@
 #include "gic.h"
-#include "resize.h"
 #include <time.h>
 
 int
@@ -27,11 +26,11 @@ main(int argc, char *argv[])
     scale1 = atof(argv[2]) / (img->width > img->height ? img->width : img->height);
 
 
-    before = clock();
-    thumb = gic_resize_lanczos(img, scale1, 2);
-    gic_write_image(thumb, "test/img1.jpg", 90);
-    after = clock();
-    printf("lanczos-2: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
+    //before = clock();
+    //thumb = gic_resize_lanczos(img, scale1, 2);
+    //gic_write_image(thumb, "test/img1.jpg", 90);
+    //after = clock();
+    //printf("lanczos-2: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
 
 
     before = clock();
