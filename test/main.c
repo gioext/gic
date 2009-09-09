@@ -28,28 +28,28 @@ main(int argc, char *argv[])
 
     //before = clock();
     //thumb = gic_resize_lanczos(img, scale1, 2);
-    //gic_write_image(thumb, "test/img1.jpg", 90);
+    //gic_write_image(thumb, "img1.jpg", 90);
     //after = clock();
     //printf("lanczos-2: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
 
 
     before = clock();
     thumb = gic_resize_nearest_neighbour(img, scale1);
-    gic_write_image(thumb, "test/img2.jpg", 90);
+    gic_write_image(thumb, "img1.jpg", 90);
     after = clock();
     printf("nearest neighbour: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
 
 
     before = clock();
     thumb = gic_resize_area_average1(img, scale1);
-    gic_write_image(thumb, "test/img3.jpg", 90);
+    gic_write_image(thumb, "img2.jpg", 90);
     after = clock();
     printf("area average1: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
 
 
     before = clock();
     thumb = gic_resize_area_average2(img, scale1);
-    gic_write_image(thumb, "test/img4.jpg", 90);
+    gic_write_image(thumb, "img3.jpg", 90);
     after = clock();
     printf("area average2: %lf\n", (double)(after - before) / CLOCKS_PER_SEC);
 
