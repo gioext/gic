@@ -1,13 +1,11 @@
 #include "gic.h"
 
-static void *xmalloc(size_t size);
-
 GIC_IMAGE *
 gic_create_image(int width, int height)
 {
     int i;
 
-    GIC_IMAGE *img = (GIC_IMAGE *)xmalloc(sizeof(GIC_IMAGE));
+    GIC_IMAGE *img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));
     img->width = width;
     img->height = height;
     img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * height);
@@ -33,7 +31,7 @@ gic_jpeg_open(char *filename)
         return NULL;
     }
 
-    img = (GIC_IMAGE *)xmalloc(sizeof(GIC_IMAGE));
+    img = (GIC_IMAGE *)malloc(sizeof(GIC_IMAGE));
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_decompress(&cinfo);
@@ -42,7 +40,6 @@ gic_jpeg_open(char *filename)
     jpeg_start_decompress(&cinfo);
     img->width = cinfo.output_width;
     img->height = cinfo.output_height;
-
 
     img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * img->height);
     img->data[0] = (JSAMPROW)calloc(sizeof(JSAMPLE), 3 * img->width * img->height);
@@ -74,28 +71,24 @@ gic_write_image(GIC_IMAGE *img, char *filename, int quality)
 {
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
+    FILE *outfile;
+
+    outfile = fopen(filename, "wb");
+    if (!outfile) {
+        return -1;
+    }
 
     cinfo.err = jpeg_std_error(&jerr);
     jpeg_create_compress(&cinfo);
-
-    FILE *outfile = fopen(filename, "wb");
-    if (!outfile) {
-        exit(1);
-    }
     jpeg_stdio_dest(&cinfo, outfile);
-
     cinfo.image_width = img->width;
     cinfo.image_height = img->height;
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
     jpeg_set_defaults(&cinfo);
-
     jpeg_set_quality(&cinfo, quality, TRUE);
-
     jpeg_start_compress(&cinfo, TRUE);
-
     jpeg_write_scanlines(&cinfo, img->data, img->height);
-
 
     jpeg_finish_compress(&cinfo);
     jpeg_destroy_compress(&cinfo);
@@ -131,16 +124,4 @@ gic_write_ppm(char *infile, char *outfile)
         return 1;
     }
     return 0;
-}
-
-static void *
-xmalloc(size_t size)
-{
-    void *p;
-    p = malloc(size);
-    if (!p) {
-        perror("malloc");
-        exit(1);
-    }
-    return p;
 }
