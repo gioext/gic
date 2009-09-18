@@ -13,7 +13,6 @@ typedef struct gic_image {
     int height;
 } GIC_IMAGE;
 
-
 GIC_IMAGE *
 gic_create_image(int width, int height);
 

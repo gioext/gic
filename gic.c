@@ -6,12 +6,15 @@ GIC_IMAGE *
 gic_create_image(int width, int height)
 {
     int i;
+
     GIC_IMAGE *img = (GIC_IMAGE *)xmalloc(sizeof(GIC_IMAGE));
     img->width = width;
     img->height = height;
-    img->data = (JSAMPARRAY)xmalloc(sizeof(JSAMPROW) * height * 3 * width);
-    for (i = 0; i < height; i++) {
-        img->data[i] = (JSAMPROW)xmalloc(sizeof(JSAMPLE) * 3 * width);
+    img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * height);
+    img->data[0] = (JSAMPROW)calloc(sizeof(JSAMPLE), 3 * width * height);
+
+    for (i = 1; i < height; i++) {
+        img->data[i] = img->data[0] + 3 * width * i;
     }
 
     return img;
@@ -41,9 +44,10 @@ gic_jpeg_open(char *filename)
     img->height = cinfo.output_height;
 
 
-    img->data = (JSAMPARRAY)xmalloc(sizeof(JSAMPROW) * img->height);
-    for (i = 0; i < img->height; i++) {
-        img->data[i] = (JSAMPROW)calloc(sizeof(JSAMPLE), 3 * img->width);
+    img->data = (JSAMPARRAY)malloc(sizeof(JSAMPROW) * img->height);
+    img->data[0] = (JSAMPROW)calloc(sizeof(JSAMPLE), 3 * img->width * img->height);
+    for (i = 1; i < img->height; i++) {
+        img->data[i] = img->data[0] + 3 * img->width * i;
     }
 
     while (cinfo.output_scanline < cinfo.output_height) {
@@ -59,10 +63,7 @@ gic_jpeg_open(char *filename)
 int
 gic_jpeg_free(GIC_IMAGE *img)
 {
-    int i;
-    for (i = 0; i < img->height; i++) {
-        free(img->data[i]);
-    }
+    free(img->data[0]);
     free(img->data);
     free(img);
     return 0;
@@ -97,7 +98,6 @@ gic_write_image(GIC_IMAGE *img, char *filename, int quality)
 
 
     jpeg_finish_compress(&cinfo);
-
     jpeg_destroy_compress(&cinfo);
 
     fclose(outfile);
